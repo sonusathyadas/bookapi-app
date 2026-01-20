@@ -1,0 +1,44 @@
+# Build folders
+**/bin/
+**/obj/
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.assets.json
+
+# Build results
+artifacts/
+TestResults/
+
+# Logs
+*.log
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
