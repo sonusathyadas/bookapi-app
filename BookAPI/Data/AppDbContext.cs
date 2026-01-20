@@ -10,10 +10,20 @@ namespace BookAPI.Data
         }
 
         public DbSet<Book> Books { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Configure unique constraints for User entity
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
 
             modelBuilder.Entity<Book>().HasData(
                 new Book { Id = 1, Title = "To Kill a Mockingbird", Author = "Harper Lee", ImageUrl = "https://covers.openlibrary.org/b/id/8225261-L.jpg", Language = "English", Category = "Fiction", PublishedYear = 1960 },
