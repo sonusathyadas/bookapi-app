@@ -128,7 +128,12 @@ namespace BookAPI.Controllers
             var audience = jwtSettings.GetSection("Audience").Value;
             var expireMinutes = int.Parse(jwtSettings.GetSection("ExpireMinutes").Value ?? "60");
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!));
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new InvalidOperationException("JWT Key is not configured");
+            }
+
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
