@@ -123,10 +123,10 @@ namespace BookAPI.Controllers
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = jwtSettings.GetValue<string>("Key");
-            var issuer = jwtSettings.GetValue<string>("Issuer");
-            var audience = jwtSettings.GetValue<string>("Audience");
-            var expireMinutes = jwtSettings.GetValue<int>("ExpireMinutes");
+            var key = jwtSettings.GetSection("Key").Value;
+            var issuer = jwtSettings.GetSection("Issuer").Value;
+            var audience = jwtSettings.GetSection("Audience").Value;
+            var expireMinutes = int.Parse(jwtSettings.GetSection("ExpireMinutes").Value ?? "60");
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
