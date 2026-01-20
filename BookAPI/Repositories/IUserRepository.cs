@@ -9,5 +9,7 @@ namespace BookAPI.Repositories
         Task<User?> GetUserByEmailAsync(string email);
         Task CreateUserAsync(User user);
         Task<bool> UserExistsAsync(string username);
+        Task UpdateUserAsync(User user);
+        Task<User?> GetUserByResetTokenAsync(string token);
     }
 }

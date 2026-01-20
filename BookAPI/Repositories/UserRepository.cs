@@ -37,5 +37,18 @@ namespace BookAPI.Repositories
             return await _context.Users
                 .AnyAsync(u => u.Username == username);
         }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<User?> GetUserByResetTokenAsync(string token)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.PasswordResetToken == token && 
+                                        u.PasswordResetTokenExpiry > DateTime.UtcNow);
+        }
     }
 }
