@@ -1,0 +1,6 @@
+messages:
+  - role: system
+    content: You are a helpful assistant that helps to develop code in C#
+  - role: user
+    content: Add an endpoint in the Authcontroller to delete a user
+model: openai/gpt-4o
