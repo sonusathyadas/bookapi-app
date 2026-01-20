@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using BookAPI.DTOs;
 using BookAPI.Models;
@@ -152,6 +153,105 @@ namespace BookAPI.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// Request a password reset token
+        /// </summary>
+        /// <param name="requestDto">Password reset request with email</param>
+        /// <returns>Success message or error</returns>
+        [HttpPost("password-reset-request")]
+        public async Task<IActionResult> RequestPasswordReset(PasswordResetRequestDto requestDto)
+        {
+            try
+            {
+                // Find user by email
+                var user = await _userRepository.GetUserByEmailAsync(requestDto.Email);
+                if (user == null)
+                {
+                    // Return success even if user doesn't exist (security best practice)
+                    return Ok("If the email exists, a password reset token has been generated.");
+                }
+
+                // Generate a secure random token
+                var resetToken = GenerateSecureToken();
+                
+                // Set token and expiry (24 hours from now)
+                user.PasswordResetToken = resetToken;
+                user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                await _userRepository.UpdateUserAsync(user);
+
+                // In production, send this token via email
+                // For now, we'll return it in the response (NOT recommended for production)
+                return Ok(new 
+                { 
+                    message = "Password reset token generated successfully",
+                    token = resetToken, // Remove this in production
+                    expiresAt = user.PasswordResetTokenExpiry
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Exception in RequestPasswordReset: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Reset password using the reset token
+        /// </summary>
+        /// <param name="resetDto">Password reset details including token and new password</param>
+        /// <returns>Success message or error</returns>
+        [HttpPost("password-reset")]
+        public async Task<IActionResult> ResetPassword(PasswordResetDto resetDto)
+        {
+            try
+            {
+                // Validate the token
+                var user = await _userRepository.GetUserByResetTokenAsync(resetDto.Token);
+                if (user == null)
+                {
+                    return BadRequest("Invalid or expired reset token");
+                }
+
+                // Verify email matches
+                if (user.Email != resetDto.Email)
+                {
+                    return BadRequest("Invalid reset request");
+                }
+
+                // Hash the new password
+                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(resetDto.NewPassword);
+
+                // Update user password and clear reset token
+                user.Password = hashedPassword;
+                user.PasswordResetToken = null;
+                user.PasswordResetTokenExpiry = null;
+
+                await _userRepository.UpdateUserAsync(user);
+
+                return Ok("Password has been reset successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Exception in ResetPassword: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Generate a secure random token for password reset
+        /// </summary>
+        /// <returns>Base64 encoded secure random token</returns>
+        private string GenerateSecureToken()
+        {
+            var randomBytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return Convert.ToBase64String(randomBytes);
         }
     }
 }
