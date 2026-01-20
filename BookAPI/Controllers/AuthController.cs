@@ -183,12 +183,10 @@ namespace BookAPI.Controllers
                 await _userRepository.UpdateUserAsync(user);
 
                 // In production, send this token via email
-                // For now, we'll return it in the response (NOT recommended for production)
+                // Do not return the reset token in the HTTP response for security reasons
                 return Ok(new 
                 { 
-                    message = "Password reset token generated successfully",
-                    token = resetToken, // Remove this in production
-                    expiresAt = user.PasswordResetTokenExpiry
+                    message = "Password reset token generated successfully"
                 });
             }
             catch (Exception ex)
@@ -246,11 +244,7 @@ namespace BookAPI.Controllers
         /// <returns>Base64 encoded secure random token</returns>
         private string GenerateSecureToken()
         {
-            var randomBytes = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomBytes);
-            }
+            var randomBytes = RandomNumberGenerator.GetBytes(32);
             return Convert.ToBase64String(randomBytes);
         }
     }
